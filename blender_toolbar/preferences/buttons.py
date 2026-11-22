@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import bpy
 
-from ..actions.mesh_actions import ACTION_ITEMS
+from ..actions.mesh_actions import ACTION_ITEMS, ACTIONS
 from ..storage.layout import read_layout, write_layout
 
 
@@ -18,8 +18,6 @@ ICON_ITEMS = (
     ("CUBE", "Cube", "Show a cube icon", 2),
     ("EXTRUDE", "Extrude", "Show an upward arrow", 3),
 )
-_ACTION_LABELS = {identifier: label for identifier, label, _, _ in ACTION_ITEMS}
-_ACTION_ICONS = {"ADD_CUBE": "CUBE", "EXTRUDE": "EXTRUDE"}
 _SETTINGS = ("button_height", "font_size", "button_color")
 _saved = None
 _restored = False
@@ -66,7 +64,7 @@ def configured_buttons(context):
         action = button.action
         icon = button.icon
         if icon == "AUTO" or (icon == "NONE" and not label):
-            icon = _ACTION_ICONS[action]
+            icon = ACTIONS[action].icon
         entries.append((label, action, icon))
     return tuple(entries)
 
@@ -134,7 +132,7 @@ def load_saved_layout():
                 raise ValueError("Invalid button field")
             if (not fields["button_id"] or fields["button_id"] in ids
                     or len(fields["label"]) > 32
-                    or fields["action"] not in _ACTION_LABELS
+                    or fields["action"] not in ACTIONS
                     or fields["icon"] not in {item[0] for item in ICON_ITEMS}):
                 raise ValueError("Invalid button settings")
             ids.add(fields["button_id"])

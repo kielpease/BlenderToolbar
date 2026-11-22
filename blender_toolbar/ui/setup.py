@@ -2,6 +2,7 @@
 
 import bpy
 
+from ..actions.mesh_actions import ACTION_ITEMS, ACTIONS
 from ..preferences.buttons import MAX_BUTTONS, append_button, get_preferences, initialize, layout_error
 
 
@@ -42,6 +43,35 @@ class BLENDERTOOLBAR_OT_edit_buttons(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class BLENDERTOOLBAR_OT_choose_action(bpy.types.Operator):
+    """Search supported Blender actions for one toolbar button."""
+
+    bl_idname = "blender_toolbar.choose_action"
+    bl_label = "Search Toolbar Actions"
+    bl_options = {"INTERNAL"}
+    bl_property = "action"
+
+    button_id: bpy.props.StringProperty()
+    action: bpy.props.EnumProperty(items=ACTION_ITEMS, default="ADD_CUBE")
+
+    def invoke(self, context, event):
+        context.window_manager.invoke_search_popup(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context):
+        preferences = get_preferences(context)
+        if preferences is None:
+            return {"CANCELLED"}
+        for button in preferences.buttons:
+            if button.button_id == self.button_id:
+                button.action = self.action
+                if context.area is not None:
+                    context.area.tag_redraw()
+                return {"FINISHED"}
+        self.report({"WARNING"}, "The toolbar button was removed")
+        return {"CANCELLED"}
+
+
 def draw_setup(layout, preferences):
     """Draw the live settings."""
     columns = layout.row()
@@ -53,7 +83,11 @@ def draw_setup(layout, preferences):
     for index, button in enumerate(preferences.buttons):
         row = layout.row(align=True)
         row.prop(button, "label", text="")
-        row.prop(button, "action", text="")
+        picker = row.row(align=True)
+        picker.operator_context = "INVOKE_DEFAULT"
+        choose = picker.operator("blender_toolbar.choose_action", text=ACTIONS[button.action].label, icon="VIEWZOOM")
+        choose.button_id = button.button_id
+        choose.action = button.action
         row.prop(button, "icon", text="")
         for operation, icon, enabled in (
             ("UP", "TRIA_UP", index > 0),

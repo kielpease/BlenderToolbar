@@ -12,7 +12,7 @@ from ..preferences.buttons import (
     CLASSES, configured_buttons, current_layout, get_preferences, initialize,
     load_saved_layout, save_layout,
 )
-from .setup import BLENDERTOOLBAR_OT_edit_buttons, draw_setup
+from .setup import BLENDERTOOLBAR_OT_choose_action, BLENDERTOOLBAR_OT_edit_buttons, draw_setup
 
 
 _MARKER = "blender_toolbar_host"
@@ -258,7 +258,7 @@ def register():
     with ExitStack() as resources:
         for cls in (*CLASSES, BLENDERTOOLBAR_OT_toggle_host, BLENDERTOOLBAR_OT_click_button,
                     BLENDERTOOLBAR_OT_setup, BLENDERTOOLBAR_OT_edit_buttons,
-                    BLENDERTOOLBAR_OT_hover_button):
+                    BLENDERTOOLBAR_OT_hover_button, BLENDERTOOLBAR_OT_choose_action):
             bpy.utils.register_class(cls)
             resources.callback(bpy.utils.unregister_class, cls)
         bpy.types.TEXT_HT_header.append(_draw_header)
