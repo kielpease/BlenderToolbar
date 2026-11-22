@@ -6,9 +6,10 @@ A customizable horizontal toolbar for Blender, inspired by the workflows of
 ## Status
 
 **v0.1 — Toolbar Foundation** is the initial milestone, not a released version.
-This repository currently contains documentation and an inert Python add-on
-scaffold only. No toolbar, settings, operators, or persistence are implemented.
-Architecture review must happen before implementation starts.
+This repository contains a Text Editor host prototype. It can mark an empty
+Text Editor area as the toolbar and recognize it after loading a saved
+workspace. It includes one fixed Add Cube button. Configurable buttons
+are still planned.
 
 ## Planned capabilities
 
@@ -20,11 +21,11 @@ Architecture review must happen before implementation starts.
 
 ## Proposed approach
 
-Use native Blender UI within an existing editor, initially the 3D Viewport
-header. This is a proposal for review, not an implemented or finalized UI choice.
-The Python API does not expose registration of arbitrary new editor types.
-See [API investigation](docs/BLENDER_API_RESEARCH.md) for evidence, alternatives,
-limitations, and the validation still required on Blender 5.2.4.
+Use a designated Text Editor area as a resizable horizontal toolbar in stock
+Blender. The Editor Type picker continues to show Text Editor. Users can save
+the workspace arrangement with Save Startup File. The add-on will restore
+toolbar mode and the saved buttons. See the
+[architecture proposal](docs/ARCHITECTURE.md) for the decisions still open.
 
 ## Repository layout
 
@@ -46,9 +47,8 @@ docs/
 AGENTS.md
 ```
 
-All reserved modules contain documentation only. The entry points intentionally
-do nothing. The package uses the traditional Python add-on entry-point shape
-for the development scaffold; an Extensions manifest and distribution metadata
+The prototype uses traditional Python add-on entry points. An Extensions
+manifest and distribution metadata
 are deferred until packaging and license choices are reviewed. This is not an
 Extensions archive or a release-ready installable distribution.
 
@@ -59,12 +59,15 @@ and the [roadmap](docs/ROADMAP.md) before changing code. Use Blender's bundled
 Python for eventual runtime checks; ordinary Python can check syntax and later
 test the Blender-independent core.
 
-Do not expect enabling this scaffold to display UI. Compatibility with the
-target Blender binary remains unverified; API research alone is not runtime
-testing. No third-party Python dependencies are required by the scaffold.
+Enable the development add-on, switch an area to an empty Text Editor, and
+click **Use as Toolbar** in its header. The area displays **Add Cube**.
+Save your workspace with **File → Defaults → Save Startup File** to carry
+the designation into future sessions. Use **Exit Toolbar Mode** to clear it.
+The prototype requires no third-party Python dependencies.
 
 ## Review gate
 
 Review the UI host, configuration contract, persistence ownership, action
 context policy, and packaging decisions listed in the architecture document.
-Only after explicit architecture approval should v0.1 behavior be implemented.
+Approve the remaining architecture decisions before expanding beyond the
+host prototype.

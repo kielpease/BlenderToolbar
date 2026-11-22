@@ -3,9 +3,9 @@
 ## Scope and review gate
 
 - Target Blender 5.2.4 LTS; v0.1 is Toolbar Foundation.
-- Current scope is documentation and an inert modular scaffold only.
-- Do not implement toolbar behavior, register UI, or add working configuration
-  services before the architecture is explicitly reviewed and approved.
+- Current scope includes the approved Text Editor host and restoration prototype.
+- Review and approve remaining architecture decisions before implementing
+  configurable buttons, action execution, or settings services.
 - Keep proposed behavior distinct from implemented and runtime-verified behavior.
 - Read docs/ARCHITECTURE.md, docs/BLENDER_API_RESEARCH.md, and docs/ROADMAP.md.
 
@@ -49,8 +49,8 @@
 
 ## Verification and documentation
 
-- For this documentation-only stage, check file structure, links, Python syntax,
-  and that entry points have no effects. Do not add behavior just to test it.
+- For the host prototype, check links, Python syntax, saved workspace
+  restoration, and the add-on registration lifecycle.
 - Once approved, test pure configuration and JSON logic outside Blender; test
   UI, operators, context, and lifecycle inside Blender 5.2.4.
 - Verify repeated enable/disable, multiple viewports/windows, modes, unavailable

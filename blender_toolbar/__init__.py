@@ -1,18 +1,24 @@
-"""BlenderToolbar development scaffold; no toolbar behavior is implemented."""
+"""BlenderToolbar add-on entry points."""
 
 bl_info = {
     "name": "BlenderToolbar",
-    "description": "Customizable horizontal toolbar (architecture scaffold only)",
-    "version": (0, 1, 0),
+    "description": "Horizontal toolbar prototype for a Text Editor area",
+    "version": (0, 1, 3),
     "blender": (5, 2, 0),
-    "category": "3D View",
-    "warning": "Development scaffold; architecture pending review",
+    "category": "Interface",
+    "warning": "Development prototype",
 }
 
 
 def register():
-    """Reserved add-on entry point; intentionally register no resources."""
+    """Enable the add-on."""
+    from . import registration
+
+    registration.register()
 
 
 def unregister():
-    """Reserved add-on exit point; the scaffold owns no resources."""
+    """Disable the add-on."""
+    from . import registration
+
+    registration.unregister()

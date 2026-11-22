@@ -1,5 +1,11 @@
 # Blender 5.2 Python API investigation
 
+This records the original Python add-on investigation. The current
+[architecture proposal](ARCHITECTURE.md) uses a designated Text Editor area.
+The [Space API](https://docs.blender.org/api/5.2/bpy.types.Space.html) documents
+region draw handlers. The prototype still needs to verify area-specific drawing,
+input handling, and restoration when loading the saved startup workspace.
+
 Investigated 2026-11-20 using official, versioned 5.2 API references. Intended
 runtime is Blender 5.2.4 LTS. No Blender binary was found on PATH during setup;
 no runtime test or exact patch-version compatibility claim has been made.
@@ -54,7 +60,7 @@ feature or a reason to persist runtime icon IDs.
 | Custom GPU overlay | Deferred; would require custom input, hit testing, and layout |
 | New editor type | Excluded from the supported Python architecture |
 
-The host recommendation is a design judgment based on these APIs, not proof
+The original host recommendation above was a design judgment based on these APIs, not proof
 that every desired shelf interaction is possible. After review, verify hooks,
 region context, built-in operator invocation, menus, dialog cancellation,
 scaling/overflow, multiple windows, and cleanup in the exact target binary.
