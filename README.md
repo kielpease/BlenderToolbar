@@ -8,8 +8,8 @@ A customizable horizontal toolbar for Blender, inspired by the workflows of
 **v0.1 — Toolbar Foundation** is the initial milestone, not a released version.
 This repository contains a Text Editor host prototype. It can mark an empty
 Text Editor area as the toolbar and recognize it after loading a saved
-workspace. It includes one fixed Add Cube button. Configurable buttons
-are still planned.
+workspace. The development build lets you add, rename, remove, and reorder
+buttons and choose Add Cube or Extrude as the action for each button.
 
 ## Planned capabilities
 
@@ -68,6 +68,15 @@ click **Use as Toolbar** in its header. The area displays **Add Cube**.
 Save your workspace with **File → Defaults → Save Startup File** to carry
 the designation into future sessions. Use **Exit Toolbar Mode** to clear it.
 The prototype requires no third-party Python dependencies.
+
+In development build 0.1.14, click the three-dot button on the left or
+right-click the toolbar. Leave **Label** blank for a compact icon-only button.
+**Save Toolbar** saves the layout to `blender_toolbar/layout.json` inside
+Blender's user configuration folder and closes Setup. The add-on loads that
+file automatically on enable. Reinstalling the add-on leaves the file in place.
+**Button Background**, **Button Height**, and **Font Size** control the row.
+In Mesh Edit Mode, the Extrude action activates Blender's Extrude Region tool.
+Select geometry and drag the tool's gizmo to extrude.
 
 ## Review gate
 

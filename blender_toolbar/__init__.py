@@ -3,7 +3,7 @@
 bl_info = {
     "name": "BlenderToolbar",
     "description": "Horizontal toolbar prototype for a Text Editor area",
-    "version": (0, 1, 3),
+    "version": (0, 1, 14),
     "blender": (5, 2, 0),
     "category": "Interface",
     "warning": "Development prototype",
