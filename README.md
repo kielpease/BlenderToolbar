@@ -54,6 +54,10 @@ Extensions archive or a release-ready installable distribution.
 
 ## Development
 
+The [stable folder](stable/) contains the single approved install ZIP.
+Drag it into Blender to install. Keep iteration builds in the local
+`dist/` folder and replace the stable ZIP when a newer build is approved.
+
 Read [AGENTS.md](AGENTS.md), the [architecture proposal](docs/ARCHITECTURE.md),
 and the [roadmap](docs/ROADMAP.md) before changing code. Use Blender's bundled
 Python for eventual runtime checks; ordinary Python can check syntax and later
