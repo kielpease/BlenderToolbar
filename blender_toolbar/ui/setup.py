@@ -13,6 +13,7 @@ class BLENDERTOOLBAR_OT_edit_buttons(bpy.types.Operator):
 
     operation: bpy.props.EnumProperty(items=(
         ("ADD", "Add", ""),
+        ("SEPARATOR", "Add Separator", ""),
         ("REMOVE", "Remove", ""),
         ("UP", "Move Left", ""),
         ("DOWN", "Move Right", ""),
@@ -25,10 +26,13 @@ class BLENDERTOOLBAR_OT_edit_buttons(bpy.types.Operator):
             return {"CANCELLED"}
         initialize(preferences)
         buttons = preferences.buttons
-        if self.operation == "ADD":
+        if self.operation in {"ADD", "SEPARATOR"}:
             if len(buttons) >= MAX_BUTTONS:
                 return {"CANCELLED"}
             append_button(preferences)
+            if self.operation == "SEPARATOR":
+                buttons[-1].kind = "SEPARATOR"
+                buttons[-1].icon = "NONE"
         elif not 0 <= self.index < len(buttons):
             return {"CANCELLED"}
         elif self.operation == "REMOVE":
@@ -65,6 +69,8 @@ class BLENDERTOOLBAR_OT_choose_action(bpy.types.Operator):
         for button in preferences.buttons:
             if button.button_id == self.button_id:
                 button.action = self.action
+                if ACTIONS[self.action].properties_context:
+                    button.popup = True
                 if context.area is not None:
                     context.area.tag_redraw()
                 return {"FINISHED"}
@@ -78,17 +84,24 @@ def draw_setup(layout, preferences):
     columns.label(text="Label")
     columns.label(text="Action")
     columns.label(text="Icon")
+    columns.label(text="Popup")
     if layout_error():
         layout.label(text=f"Layout could not load: {layout_error()}", icon="ERROR")
     for index, button in enumerate(preferences.buttons):
         row = layout.row(align=True)
         row.prop(button, "label", text="")
         picker = row.row(align=True)
+        picker.enabled = button.kind == "BUTTON"
         picker.operator_context = "INVOKE_DEFAULT"
-        choose = picker.operator("blender_toolbar.choose_action", text=ACTIONS[button.action].label, icon="VIEWZOOM")
+        choose = picker.operator("blender_toolbar.choose_action", text="Separator / Group" if button.kind == "SEPARATOR" else ACTIONS[button.action].label, icon="VIEWZOOM")
         choose.button_id = button.button_id
         choose.action = button.action
-        row.prop(button, "icon", text="")
+        icon = row.row(align=True)
+        icon.enabled = button.kind == "BUTTON"
+        icon.prop(button, "icon", text="")
+        popup = row.row(align=True)
+        popup.enabled = button.kind == "BUTTON" and ACTIONS[button.action].properties_context is None
+        popup.prop(button, "popup", text="Popup")
         for operation, icon, enabled in (
             ("UP", "TRIA_UP", index > 0),
             ("DOWN", "TRIA_DOWN", index < len(preferences.buttons) - 1),
@@ -102,6 +115,9 @@ def draw_setup(layout, preferences):
     row = layout.row()
     row.enabled = len(preferences.buttons) < MAX_BUTTONS
     row.operator("blender_toolbar.edit_buttons", text="Add Button", icon="ADD").operation = "ADD"
+    row.operator("blender_toolbar.edit_buttons", text="Add Separator", icon="REMOVE").operation = "SEPARATOR"
+    layout.label(text="Name a separator to label a group. Click a viewport before using its commands.")
+    layout.label(text="Popup: command launcher. Materials / Render / Viewport: full floating editors.")
     colors = layout.row()
     colors.prop(preferences, "button_color")
     sizes = layout.row()

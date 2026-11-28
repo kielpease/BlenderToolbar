@@ -5,21 +5,22 @@ import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from ..core.layout import validate_layout
 
-def read_layout(path: Path) -> dict | None:
-    """Return a version-one layout, or None before the first save."""
+
+def read_layout(path: Path, action_ids: set[str], icon_ids: set[str]) -> dict | None:
+    """Validate and migrate a candidate layout, or return None before the first save."""
     try:
         with path.open(encoding="utf-8") as source:
             layout = json.load(source)
     except FileNotFoundError:
         return None
-    if not isinstance(layout, dict) or layout.get("version") != 1:
-        raise ValueError("Unsupported toolbar layout version")
-    return layout
+    return validate_layout(layout, action_ids, icon_ids)
 
 
-def write_layout(path: Path, layout: dict) -> None:
+def write_layout(path: Path, layout: dict, action_ids: set[str], icon_ids: set[str]) -> None:
     """Replace the previous layout only after the new file is written."""
+    layout = validate_layout(layout, action_ids, icon_ids)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:

@@ -1,87 +1,111 @@
 # BlenderToolbar
 
-A customizable horizontal toolbar for Blender, inspired by the workflows of
-3ds Max and Maya. Target runtime: **Blender 5.2.4 LTS**.
+A customizable horizontal toolbar for Blender, hosted in a designated Text
+Editor area. The approved stable prototype is **0.1.17**.
 
-## Status
+Target runtime: **Blender 5.2.4 LTS**. The current build was runtime-tested on
+**Blender 5.2.5 LTS**, build `5f2fd03c4701`; exact 5.2.4 verification remains open.
 
-**v0.1 — Toolbar Foundation** is the initial milestone, not a released version.
-This repository contains a Text Editor host prototype. It can mark an empty
-Text Editor area as the toolbar and recognize it after loading a saved
-workspace. The development build lets you add, rename, remove, and reorder
-buttons and assign supported Blender commands and tools.
+## Install
 
-## Planned capabilities
+Download [BlenderToolbar-prototype-0.1.17.zip](stable/BlenderToolbar-prototype-0.1.17.zip)
+and install it through Blender Preferences > Add-ons > Install from Disk, then
+enable **BlenderToolbar**. This is a traditional Python add-on ZIP, not a Blender
+Extensions archive. The [stable folder](stable/) contains one approved build.
+Packaging/license decisions for a broader public release remain open.
 
-- Configuration-driven buttons with add, delete, edit, and reorder controls.
-- Built-in Blender operator actions, popup menus, and property dialogs.
-- Versioned JSON layout import/export for sharing configurations.
-- Custom icons in a future release.
-- Optional adapters for other add-ons; no hard dependency on V-Ray or BlenderSpline.
+Switch an empty area to **Text Editor**, then click **Use as Toolbar** in its
+header. Resize or move that area with Blender's normal workspace controls.
+**Exit Toolbar Mode** restores ordinary text editing in the area. Save the
+workspace in a `.blend` file, or use **File > Defaults > Save Startup File** to
+make its arrangement your startup layout. Saving a startup file also saves the
+current scene as the startup scene.
 
-## Proposed approach
+## Toolbar controls
 
-Use a designated Text Editor area as a resizable horizontal toolbar in stock
-Blender. The Editor Type picker continues to show Text Editor. Users can save
-the workspace arrangement with Save Startup File. The add-on will restore
-toolbar mode and the saved buttons. See the
-[architecture proposal](docs/ARCHITECTURE.md) for the decisions still open.
+Click the three-dot button or right-click the toolbar to open Setup. Add,
+remove, rename and reorder buttons, and click an Action to search supported
+commands. A blank Label gives a compact icon-only button. **Save Toolbar**
+saves the layout independently of the installed add-on; reinstalling preserves
+it. Setup edits are live; Save Toolbar persists them for the next session.
+Button Background, Button Height and Font Size control the row.
 
-## Repository layout
+**Add Separator** creates a movable divider. Give it a Label to mark a group,
+or leave it blank for a plain line. Up to 32 entries are supported; groups are
+labels and dividers, not collapsible containers.
 
-```text
-blender_toolbar/
-    __init__.py       # Inert add-on entry points and development metadata
-    registration.py   # Reserved lifecycle coordination
-    core/             # Blender-independent configuration and validation
-    actions/          # Blender operator resolution and invocation
-    ui/               # Header rendering, menus, dialogs, layout editor
-    preferences/      # Blender settings and configuration adapters
-    storage/          # JSON serialization, migration, import/export
-    integrations/     # Optional external add-on adapters
-    icons/            # Future icon resource lifecycle
-docs/
-    ARCHITECTURE.md
-    BLENDER_API_RESEARCH.md
-    ROADMAP.md
-AGENTS.md
+Supported commands include:
+
+- Add Cube, UV Sphere, Cylinder and Plane.
+- Translate, Rotate and Scale gizmos; Extrude Region, Bevel and Inset in Mesh Edit Mode.
+- Undo, Redo, Rename Selected, and lock/unlock all three selected-object translation axes.
+- Convert selected objects to mesh in Object Mode, including already-mesh selections.
+- Full floating Material Properties, Render Properties, and 3D Viewport windows.
+- Draw Spline through the optional, already-enabled Spline Maker extension.
+
+Rename uses one name for a single selected editable object, or Name_001,
+Name_002, etc. for multiple objects. Translation locks preserve rotation and
+scale lock flags. Conversion requires the active object to be part of the
+editable selection and leaves unselected objects unchanged.
+
+A button's **Popup** checkbox opens a small command launcher before running.
+Editor actions always open a full floating Blender editor, whose settings are
+live Blender edits. Materials requires an active object. Popup launchers do
+not expose every target operator's parameters.
+
+With multiple viewports, **click or navigate in the desired viewport first**.
+Commands, including Draw Spline, use the last interacted viewport in that
+window. A single viewport works immediately. Targets reset after loading a
+file; missing targets produce a prompt to select a viewport. No modal startup
+watcher is used. The add-on never installs or enables external add-ons, and
+missing Spline Maker preserves its button with an availability explanation.
+
+## Continue development on another computer
+
+The current toolbar preset is saved as
+[presets/development-layout.json](presets/development-layout.json). It contains
+button order, stable IDs, labels, icons, Popup choices, separators, color, height
+and font size. Follow [Development setup](docs/DEVELOPMENT_SETUP.md) to restore
+it on another computer. Blender startup workspaces and full preferences are
+not committed to this repository.
+
+The add-on reads `blender_toolbar/layout.json` inside Blender's user
+configuration folder when enabled. Layout schema **3** adds entry kinds;
+versions 1 and 2 migrate without changing existing IDs or order. Invalid or
+future versions are rejected before replacing a saved layout. To downgrade to
+an older add-on, restore a layout backup supported by that version. Open Blender
+instances do not automatically refresh a file saved by another instance.
+
+## Development and verification
+
+Read [AGENTS.md](AGENTS.md), [Architecture](docs/ARCHITECTURE.md),
+[API research](docs/BLENDER_API_RESEARCH.md) and [Roadmap](docs/ROADMAP.md).
+The requested button, popup, separator, selection and targeting features have
+scoped approval; unrelated architecture and public-release decisions remain open.
+
+Build an iteration ZIP using Python's standard library:
+
+```powershell
+python scripts/build_addon.py
 ```
 
-The prototype uses traditional Python add-on entry points. An Extensions
-manifest and distribution metadata
-are deferred until packaging and license choices are reviewed. This is not an
-Extensions archive or a release-ready installable distribution.
+Builds go into the ignored `dist/` folder. The script syntax-checks the package
+and creates a reproducible archive containing only add-on Python sources.
+Promote a build into `stable/` only after explicit approval.
 
-## Development
+Pure tests:
 
-The [stable folder](stable/) contains the single approved install ZIP.
-Drag it into Blender to install. Keep iteration builds in the local
-`dist/` folder and replace the stable ZIP when a newer build is approved.
+```powershell
+python -m unittest discover -s tests -v
+```
 
-Read [AGENTS.md](AGENTS.md), the [architecture proposal](docs/ARCHITECTURE.md),
-and the [roadmap](docs/ROADMAP.md) before changing code. Use Blender's bundled
-Python for eventual runtime checks; ordinary Python can check syntax and later
-test the Blender-independent core.
+Blender runtime checks (use an installed Blender executable):
 
-Enable the development add-on, switch an area to an empty Text Editor, and
-click **Use as Toolbar** in its header. The area displays **Add Cube**.
-Save your workspace with **File → Defaults → Save Startup File** to carry
-the designation into future sessions. Use **Exit Toolbar Mode** to clear it.
-The prototype requires no third-party Python dependencies.
+```powershell
+blender --background --factory-startup --python-exit-code 1 --python tests/blender_runtime.py
+```
 
-In development build 0.1.15, click the three-dot button on the left or
-right-click the toolbar. Leave **Label** blank for a compact icon-only button.
-Click the current action in any row to search the supported commands and tools.
-**Save Toolbar** saves the layout to `blender_toolbar/layout.json` inside
-Blender's user configuration folder and closes Setup. The add-on loads that
-file automatically on enable. Reinstalling the add-on leaves the file in place.
-**Button Background**, **Button Height**, and **Font Size** control the row.
-In Mesh Edit Mode, the Extrude action activates Blender's Extrude Region tool.
-Select geometry and drag the tool's gizmo to extrude.
-
-## Review gate
-
-Review the UI host, configuration contract, persistence ownership, action
-context policy, and packaging decisions listed in the architecture document.
-Approve the remaining architecture decisions before expanding beyond the
-host prototype.
+Runtime checks use an isolated factory scene and write generated files to
+`dist/`. The [roadmap](docs/ROADMAP.md) records tested behavior and remaining
+coverage; see the [changelog](docs/CHANGELOG.md) for stable 0.1.17. Improved icon
+clarity and consistency are a priority for the next builds.

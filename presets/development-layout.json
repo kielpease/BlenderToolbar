@@ -1,0 +1,148 @@
+{
+  "version": 3,
+  "button_height": 28,
+  "font_size": 11,
+  "button_color": [
+    0.28999999165534973,
+    0.28999999165534973,
+    0.28999999165534973
+  ],
+  "buttons": [
+    {
+      "button_id": "1e66a59a4d534032a0729602ec5dbc32",
+      "label": "",
+      "action": "UNDO",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "9b6649b94cca426db40baf1446a88b3f",
+      "label": "",
+      "action": "REDO",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "fe3f58f070a541e29df3797871dc0d25",
+      "label": "",
+      "action": "MOVE_TOOL",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "bc2f1a4d17784a558ee1d54cf19de8cb",
+      "label": "",
+      "action": "ROTATE_TOOL",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "1173ebacc6564afc94844090096aa3e8",
+      "label": "",
+      "action": "SCALE_TOOL",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "c3b776c68e0049dcbe98039d3dd8b2e8",
+      "label": "",
+      "action": "ADD_CUBE",
+      "icon": "NONE",
+      "popup": false,
+      "kind": "SEPARATOR"
+    },
+    {
+      "button_id": "2630057d4cc2411da8b32c44bff69783",
+      "label": "",
+      "action": "ADD_CUBE",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "f84d9168622a46948b381835c346fc51",
+      "label": "Spline",
+      "action": "ADD_SPLINE",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "2dc1cdc68b9640858fca2189319370ce",
+      "label": "To Mesh",
+      "action": "CONVERT_MESH",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "1f5b30d0f8cf41309de7c65ca2bc86a3",
+      "label": "",
+      "action": "EXTRUDE",
+      "icon": "EXTRUDE",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "4bca2ad672bb47e8b20482b324ba2054",
+      "label": "",
+      "action": "ADD_CUBE",
+      "icon": "NONE",
+      "popup": false,
+      "kind": "SEPARATOR"
+    },
+    {
+      "button_id": "d24fe1e7595b456781deefe57ad698dd",
+      "label": "Materials",
+      "action": "MATERIALS",
+      "icon": "AUTO",
+      "popup": true,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "1a49809992c9470c9b61caf1b2f9f57d",
+      "label": "Render",
+      "action": "RENDER_SETTINGS",
+      "icon": "AUTO",
+      "popup": true,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "7c539f9d02344d479879b3d98b56737e",
+      "label": "",
+      "action": "ADD_CUBE",
+      "icon": "NONE",
+      "popup": false,
+      "kind": "SEPARATOR"
+    },
+    {
+      "button_id": "5acac4df3baa4b6582724662f4ac4ff8",
+      "label": "Rename",
+      "action": "RENAME_SELECTED",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "1886fa93a1b14f369ab510692e86f1f8",
+      "label": "",
+      "action": "LOCK_TRANSLATION",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    },
+    {
+      "button_id": "6817767e877b4720b1b0b265098dfc69",
+      "label": "",
+      "action": "UNLOCK_TRANSLATION",
+      "icon": "AUTO",
+      "popup": false,
+      "kind": "BUTTON"
+    }
+  ]
+}

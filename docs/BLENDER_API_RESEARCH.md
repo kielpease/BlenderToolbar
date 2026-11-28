@@ -64,3 +64,42 @@ The original host recommendation above was a design judgment based on these APIs
 that every desired shelf interaction is possible. After review, verify hooks,
 region context, built-in operator invocation, menus, dialog cancellation,
 scaling/overflow, multiple windows, and cleanup in the exact target binary.
+
+
+## Floating editors and optional commands (2026-11-27)
+
+The versioned [Screen operators](https://docs.blender.org/api/5.2/bpy.ops.screen.html)
+and [Properties space](https://docs.blender.org/api/5.2/bpy.types.SpaceProperties.html)
+are the reference contracts for duplicating an area into a new window and
+choosing its Properties context. Fetching those versioned pages was unavailable
+through the research tool; runtime investigation uses installed Blender 5.2.5
+LTS (5f2fd03c4701). `screen.area_dupli` has no execute callback in this build;
+calling it with EXEC_DEFAULT is invalid, so the implementation uses INVOKE_DEFAULT.
+No compatibility claim for 5.2.4 follows from this 5.2.5 verification.
+
+The [WindowManager API](https://docs.blender.org/api/5.2/bpy.types.WindowManager.html)
+documents invoke_popup for transient operator UI. The launcher keeps execution
+in actions/ and rechecks the original viewport on the command click. Missing
+operator RNA raises KeyError in Blender 5.2.5; the lazy lookup handles that case.
+
+
+## Last-interacted viewport and synchronous undo (0.1.17)
+
+The versioned [KeyMapItems API](https://docs.blender.org/api/5.2/bpy.types.KeyMapItems.html)
+documents `new(..., any=True, head=True)`. A pass-through View3D operator can
+observe input without consuming the selection/navigation event. Blender 5.2.5
+interactive checks confirmed that clicking the perspective view selected the
+same area used by the subsequent Spline Maker modal invocation, even though the
+Spline button was positioned above/below the camera view. Cancellation worked.
+
+The [Object API](https://docs.blender.org/api/5.2/bpy.types.Object.html) and
+[Object operators](https://docs.blender.org/api/5.2/bpy.ops.object.html) are the
+references for location locks and selected-object conversion. Runtime checks
+covered selected curves, selected meshes, preservation of an unselected curve,
+Object/Edit Mode rejection, and multi-object rename/lock changes.
+
+Interactive undo testing found that nested synchronous selection edits were
+missing from history until explicitly recorded with
+[ed.undo_push](https://docs.blender.org/api/5.2/bpy.ops.ed.html). One toolbar Undo
+then restored all three prior lock flags, and Redo reapplied them. This finding
+is verified on Blender 5.2.5 LTS (5f2fd03c4701), not on target 5.2.4.

@@ -8,15 +8,27 @@ import bpy
 
 from ..actions.mesh_actions import ACTION_ITEMS, ACTIONS
 from ..storage.layout import read_layout, write_layout
+from ..core.layout import BUTTON_FIELDS, MAX_BUTTONS, SCHEMA_VERSION
 
 
 _PACKAGE = __package__.rsplit(".", 1)[0]
-MAX_BUTTONS = 12
 ICON_ITEMS = (
     ("AUTO", "Match Action", "Show the icon for the selected action", 0),
     ("NONE", "None", "Show the label only", 1),
     ("CUBE", "Cube", "Show a cube icon", 2),
     ("EXTRUDE", "Extrude", "Show an upward arrow", 3),
+    ("SPLINE", "Spline", "Show the curve drawing icon", 4),
+    ("MESH", "Mesh", "Show a mesh icon", 5),
+    ("MATERIAL", "Material", "Show a material icon", 6),
+    ("RENDER", "Render", "Show a render camera icon", 7),
+    ("UNDO", "Undo", "Undo arrow", 8),
+    ("REDO", "Redo", "Redo arrow", 9),
+    ("MOVE", "Translate", "Move arrows", 10),
+    ("ROTATE", "Rotate", "Rotation arrow", 11),
+    ("SCALE", "Scale", "Scale arrow", 12),
+    ("RENAME", "Rename", "Rename pencil", 13),
+    ("LOCK", "Lock", "Closed padlock", 14),
+    ("UNLOCK", "Unlock", "Open padlock", 15),
 )
 _SETTINGS = ("button_height", "font_size", "button_color")
 _saved = None
@@ -26,9 +38,11 @@ _load_error = None
 
 class BLENDERTOOLBAR_PG_button(bpy.types.PropertyGroup):
     button_id: bpy.props.StringProperty()
+    kind: bpy.props.EnumProperty(items=(('BUTTON', 'Button', ''), ('SEPARATOR', 'Separator', 'Optional group label')), default='BUTTON')
     label: bpy.props.StringProperty(name="Label", description="Leave blank for an icon-only button", maxlen=32)
     action: bpy.props.EnumProperty(name="Action", items=ACTION_ITEMS, default="ADD_CUBE")
     icon: bpy.props.EnumProperty(name="Icon", items=ICON_ITEMS, default="AUTO")
+    popup: bpy.props.BoolProperty(name="Popup", description="Open a command popup before running; editor actions always open a floating window", default=False)
 
 
 class BLENDERTOOLBAR_AP_preferences(bpy.types.AddonPreferences):
@@ -42,6 +56,10 @@ class BLENDERTOOLBAR_AP_preferences(bpy.types.AddonPreferences):
         name="Button Background", subtype="COLOR_GAMMA", size=3,
         min=0.0, max=1.0, default=(0.29, 0.29, 0.29),
     )
+
+    def draw(self, context):
+        self.layout.label(text="Configure buttons in the toolbar's BlenderToolbar Setup dialog.")
+        self.layout.label(text="Each row includes a Popup checkbox; editor actions always open a window.")
 
 
 CLASSES = (BLENDERTOOLBAR_PG_button, BLENDERTOOLBAR_AP_preferences)
@@ -57,7 +75,7 @@ def configured_buttons(context):
     """Read the configured labels and actions, with one button for a fresh installation."""
     preferences = current_layout(context)
     if preferences is None or not preferences.initialized:
-        return (("", "ADD_CUBE", "CUBE"),)
+        return (("", "ADD_CUBE", "CUBE", False, "BUTTON"),)
     entries = []
     for button in preferences.buttons:
         label = button.label.strip()
@@ -65,7 +83,7 @@ def configured_buttons(context):
         icon = button.icon
         if icon == "AUTO" or (icon == "NONE" and not label):
             icon = ACTIONS[action].icon
-        entries.append((label, action, icon))
+        entries.append((label, action, icon, button.popup, button.kind))
     return tuple(entries)
 
 
@@ -108,35 +126,11 @@ def load_saved_layout():
     _saved = _load_error = None
     _restored = False
     try:
-        data = read_layout(_layout_path())
+        data = read_layout(_layout_path(), set(ACTIONS), {item[0] for item in ICON_ITEMS})
         if data is None:
             return
-        for key, minimum, maximum in (("button_height", 16, 64), ("font_size", 8, 24)):
-            if type(data[key]) is not int or not minimum <= data[key] <= maximum:
-                raise ValueError(f"Invalid {key}")
-        color = data["button_color"]
-        if not isinstance(color, list) or len(color) != 3 or not all(
-            type(channel) in (float, int) and 0 <= channel <= 1 for channel in color
-        ):
-            raise ValueError("Invalid button color")
-        buttons = data["buttons"]
-        if not isinstance(buttons, list) or len(buttons) > MAX_BUTTONS:
-            raise ValueError("Invalid button list")
-        entries = []
-        ids = set()
-        for button in buttons:
-            if not isinstance(button, dict):
-                raise ValueError("Invalid button entry")
-            fields = {key: button[key] for key in ("button_id", "label", "action", "icon")}
-            if not all(isinstance(value, str) for value in fields.values()):
-                raise ValueError("Invalid button field")
-            if (not fields["button_id"] or fields["button_id"] in ids
-                    or len(fields["label"]) > 32
-                    or fields["action"] not in ACTIONS
-                    or fields["icon"] not in {item[0] for item in ICON_ITEMS}):
-                raise ValueError("Invalid button settings")
-            ids.add(fields["button_id"])
-            entries.append(SimpleNamespace(**fields))
+        entries = [SimpleNamespace(**{key: button[key] for key in BUTTON_FIELDS})
+                   for button in data['buttons']]
         _saved = SimpleNamespace(
             initialized=True, buttons=entries, **{key: data[key] for key in _SETTINGS}
         )
@@ -155,13 +149,13 @@ def save_layout(preferences):
         raise ValueError(f"Move the unreadable layout file before saving: {_layout_path()}")
     initialize(preferences)
     data = {
-        "version": 1,
+        "version": SCHEMA_VERSION,
         "button_height": preferences.button_height,
         "font_size": preferences.font_size,
         "button_color": list(preferences.button_color),
         "buttons": [
-            {key: getattr(button, key) for key in ("button_id", "label", "action", "icon")}
+            {key: getattr(button, key) for key in BUTTON_FIELDS}
             for button in preferences.buttons
         ],
     }
-    write_layout(_layout_path(), data)
+    write_layout(_layout_path(), data, set(ACTIONS), {item[0] for item in ICON_ITEMS})

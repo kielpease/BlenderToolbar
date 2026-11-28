@@ -95,3 +95,64 @@ V-Ray and BlenderSpline remain optional; no specific adapter is promised.
 
 Acceptance: a reproducible package installs and passes the documented manual
 matrix on Blender 5.2.4 LTS. Broader Blender support requires separate evidence.
+
+
+## Local 0.1.16 development verification (2026-11-27)
+
+Scoped approval covers the requested Popup control, Spline Maker drawing,
+Convert to Mesh, and full floating Materials / Render Settings editors.
+The work-laptop build was installed and checked in Blender 5.2.5 LTS
+(5f2fd03c4701); this does not close the broader 5.2.4 acceptance matrix.
+
+Passed: syntax; four pure Python migration/validation/atomic-write regression
+tests outside Blender; three enable/disable cycles; saved host restoration;
+version-1 layout migration preserving IDs; Popup flag round-trip; selected
+curve conversion to mesh; missing Spline Maker operator feedback; installed
+source matching the build; isolated interactive Spline Maker invocation and
+cleanup; command popup invocation without immediate action execution. Full Material and Render Properties windows were
+also observed interactively from their toolbar buttons.
+
+Still open: full multi-window/mode/scaling/overflow coverage, interactive
+confirmation and dismissal of every action, lifecycle while a command popup
+is open, and exact target Blender 5.2.4 verification. Transient command popups
+are launchers; they do not expose every target operator's parameters.
+
+
+## Local 0.1.17 verification (2026-11-27)
+
+Scoped work: movable separators with optional group labels; Undo/Redo; transform
+gizmos; selected editable-object rename and location lock/unlock; last-interacted
+viewport targeting; selected-object conversion checks. Tested on Blender 5.2.5
+LTS (5f2fd03c4701), preserving the user's current top-toolbar workspace.
+
+Passed: five pure layout regression tests (v1/v2 migration, separator and Popup
+round trips, invalid candidate rejection, atomic-write failure preservation);
+background lifecycle repetition, simulated partial-registration cleanup, owned
+keymap/handler removal, two-view targeting and stale target rejection, selected
+multi-object locks/rename, curve and mesh conversion with an unselected curve
+unchanged, Object/Edit Mode checks, and saved host restoration/cache reset.
+Interactive input verified actual pass-through selection, perspective-view
+Spline Maker targeting and cancellation, and one-step lock Undo/Redo. The installed
+source matches the built ZIP. Tests are in tests/test_layout.py and
+tests/blender_runtime.py; generated scenes and local install ZIPs remain ignored.
+
+Still open: exact 5.2.4 testing; exhaustive multi-window/keyboard-only targeting;
+all modal-action/undo combinations; overflow and scaling coverage. Group headers
+are separators with labels, not collapsible or nested containers.
+
+
+## Approved stable promotion and next-build priority (2026-11-27)
+
+The user approved 0.1.17 as the single stable prototype and requested a portable
+snapshot of the current toolbar layout for another development computer.
+`presets/development-layout.json` is the approved JSON snapshot. Raw preferences,
+startup workspaces and scenes remain outside Git. See DEVELOPMENT_SETUP.md.
+
+**Priority for the next builds: better icons.** Improve distinctness and visual
+consistency across undo/redo, transform, spline, mesh, material/render and lock
+commands. Check icon-only tooltips, light/dark contrast and high-DPI scaling.
+Investigate supported native icon rendering before expanding custom assets.
+This icon work is planned, not implemented or runtime-verified.
+
+Stable promotion does not close the remaining architecture, packaging/license,
+5.2.4, multi-window, scaling/overflow or modal-history acceptance items above.

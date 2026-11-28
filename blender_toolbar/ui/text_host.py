@@ -1,22 +1,20 @@
 """Prototype a saved, opt-in toolbar area using a Text Editor host."""
 
-from contextlib import ExitStack
-
 import blf
 import bpy
 import gpu
 from gpu_extras.batch import batch_for_shader
 
 from ..actions.mesh_actions import run_action
+from ..icons.geometry import ICON_LINES
 from ..preferences.buttons import (
-    CLASSES, configured_buttons, current_layout, get_preferences, initialize,
-    load_saved_layout, save_layout,
+    configured_buttons, current_layout, get_preferences, initialize,
+    save_layout,
 )
-from .setup import BLENDERTOOLBAR_OT_choose_action, BLENDERTOOLBAR_OT_edit_buttons, draw_setup
+from .setup import draw_setup
 
 
 _MARKER = "blender_toolbar_host"
-_resources = None
 _BUTTON_LABEL = "Add Cube"
 _hover = {}
 _BACKGROUND = (0.13, 0.13, 0.13, 1)
@@ -81,7 +79,7 @@ class BLENDERTOOLBAR_OT_setup(bpy.types.Operator):
     def invoke(self, context, event):
         initialize(get_preferences(context))
         return context.window_manager.invoke_props_dialog(
-            self, width=560, confirm_text="Save Toolbar"
+            self, width=760, confirm_text="Save Toolbar"
         )
 
     def draw(self, context):
@@ -105,13 +103,17 @@ def _button_bounds(context):
     if context.region.width < 38 * scale or height < 16 * scale:
         return
     bottom = (region_height - height) / 2
-    yield None, "", "SETUP", (6 * scale, bottom, 32 * scale, bottom + height)
+    yield None, "", "SETUP", False, (6 * scale, bottom, 32 * scale, bottom + height)
     left = 44 * scale
-    for label, action, icon in configured_buttons(context):
-        width = max((100 if label else 28) * scale, height)
+    for label, action, icon, popup, kind in configured_buttons(context):
+        if kind == 'SEPARATOR':
+            action, icon = 'SEPARATOR', 'SEPARATOR'
+            width = (max(24, 16 + len(label) * 7) if label else 16) * scale
+        else:
+            width = max((100 if label else 28) * scale, height)
         if left + width > context.region.width - 6 * scale:
             break
-        yield action, label, icon, (left, bottom, left + width, bottom + height)
+        yield action, label, icon, popup, (left, bottom, left + width, bottom + height)
         left += width + 6 * scale
 
 
@@ -131,12 +133,14 @@ class BLENDERTOOLBAR_OT_click_button(bpy.types.Operator):
         )
 
     def invoke(self, context, event):
-        for action, _, _, (left, bottom, right, top) in _button_bounds(context):
+        for action, _, _, popup, (left, bottom, right, top) in _button_bounds(context):
             if left <= event.mouse_region_x < right and bottom <= event.mouse_region_y < top:
+                if action == 'SEPARATOR':
+                    return {'FINISHED'}
                 if action is None:
                     result = bpy.ops.blender_toolbar.setup("INVOKE_DEFAULT")
                     return {"CANCELLED"} if "CANCELLED" in result else {"FINISHED"}
-                error = run_action(context, event.mouse_x, action)
+                error = run_action(context, event.mouse_x, action, popup, record_undo=True)
                 if error is not None:
                     self.report({"WARNING"}, error)
                 return {"FINISHED"}
@@ -157,7 +161,7 @@ class BLENDERTOOLBAR_OT_hover_button(bpy.types.Operator):
         area = context.area.as_pointer()
         x, y = event.mouse_region_x, event.mouse_region_y
         index = next(
-            (index for index, (_, _, _, (left, bottom, right, top)) in enumerate(_button_bounds(context))
+            (index for index, (_, _, _, _, (left, bottom, right, top)) in enumerate(_button_bounds(context))
              if left <= x < right and bottom <= y < top),
             None,
         )
@@ -177,18 +181,6 @@ def _draw_rectangle(shader, bounds, color):
     batch_for_shader(shader, "TRI_STRIP", {"pos": vertices}).draw(shader)
 
 
-_ICON_LINES = {
-    "CUBE": (
-        ((0, 0.25), (0.5, 0), (1, 0.25), (1, 0.75), (0.5, 1), (0, 0.75), (0, 0.25)),
-        ((0, 0.75), (0.5, 0.5), (1, 0.75)),
-        ((0.5, 0.5), (0.5, 0)),
-    ),
-    "EXTRUDE": (
-        ((0.5, 0.17), (0.5, 1)),
-        ((0.16, 0.66), (0.5, 1), (0.84, 0.66)),
-        ((0.08, 0), (0.92, 0)),
-    ),
-}
 
 
 def _foreground(color):
@@ -206,7 +198,7 @@ def _draw_icon(shader, icon, left, center_y, size, color):
             _draw_rectangle(shader, (center_x - radius, y - radius, center_x + radius, y + radius), color)
         return
     shader.uniform_float("color", color)
-    for line in _ICON_LINES[icon]:
+    for line in ICON_LINES.get(icon, ICON_LINES["CUBE"]):
         points = [(left + x * size, center_y + (y - 0.5) * size) for x, y in line]
         batch_for_shader(shader, "LINE_STRIP", {"pos": points}).draw(shader)
 
@@ -225,7 +217,16 @@ def _draw_toolbar():
     font_size = preferences.font_size if preferences else 11
     hovered = _hover.get(context.window.as_pointer())
     area = context.area.as_pointer()
-    for index, (_, label, icon, bounds) in enumerate(_button_bounds(context)):
+    for index, (_, label, icon, _, bounds) in enumerate(_button_bounds(context)):
+        if icon == 'SEPARATOR':
+            left, bottom, right, top = bounds
+            _draw_rectangle(shader, (left + 3 * scale, bottom + 2 * scale, left + 4 * scale, top - 2 * scale), (0.55, 0.55, 0.55, 1))
+            if label:
+                blf.size(font, font_size * scale)
+                blf.position(font, left + 10 * scale, (bottom + top - blf.dimensions(font, label)[1]) / 2, 0)
+                blf.color(font, 0.75, 0.75, 0.75, 1)
+                blf.draw(font, label)
+            continue
         is_hovered = hovered == (area, index)
         color = _BACKGROUND[:3]
         if icon != "SETUP":
@@ -247,43 +248,3 @@ def _draw_toolbar():
         blf.position(font, (left + right - width) / 2, (bottom + top - height) / 2, 0)
         blf.color(font, *foreground)
         blf.draw(font, label)
-
-
-def register():
-    """Install the opt-in header control and area drawing hook."""
-    global _resources
-    if _resources is not None:
-        return
-    load_saved_layout()
-    with ExitStack() as resources:
-        for cls in (*CLASSES, BLENDERTOOLBAR_OT_toggle_host, BLENDERTOOLBAR_OT_click_button,
-                    BLENDERTOOLBAR_OT_setup, BLENDERTOOLBAR_OT_edit_buttons,
-                    BLENDERTOOLBAR_OT_hover_button, BLENDERTOOLBAR_OT_choose_action):
-            bpy.utils.register_class(cls)
-            resources.callback(bpy.utils.unregister_class, cls)
-        bpy.types.TEXT_HT_header.append(_draw_header)
-        resources.callback(bpy.types.TEXT_HT_header.remove, _draw_header)
-        handle = bpy.types.SpaceTextEditor.draw_handler_add(
-            _draw_toolbar, (), "WINDOW", "POST_PIXEL"
-        )
-        resources.callback(bpy.types.SpaceTextEditor.draw_handler_remove, handle, "WINDOW")
-        keyconfig = bpy.context.window_manager.keyconfigs.addon
-        if keyconfig is not None:
-            keymap = keyconfig.keymaps.new(name="Text", space_type="TEXT_EDITOR")
-            for operator, event_type, value in (
-                (BLENDERTOOLBAR_OT_click_button, "LEFTMOUSE", "PRESS"),
-                (BLENDERTOOLBAR_OT_setup, "RIGHTMOUSE", "RELEASE"),
-                (BLENDERTOOLBAR_OT_hover_button, "MOUSEMOVE", "ANY"),
-            ):
-                item = keymap.keymap_items.new(operator.bl_idname, event_type, value, head=True)
-                resources.callback(keymap.keymap_items.remove, item)
-        resources.callback(_hover.clear)
-        _resources = resources.pop_all()
-
-
-def unregister():
-    """Remove the drawing hook and header control in reverse order."""
-    global _resources
-    if _resources is not None:
-        resources, _resources = _resources, None
-        resources.close()

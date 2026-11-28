@@ -3,9 +3,12 @@
 ## Scope and review gate
 
 - Target Blender 5.2.4 LTS; v0.1 is Toolbar Foundation.
-- Current scope includes the approved Text Editor host and restoration prototype.
-- Review and approve remaining architecture decisions before implementing
-  configurable buttons, action execution, or settings services.
+- Current approved scope includes the Text Editor host/restoration prototype,
+  configurable command buttons and popups, separators, selection commands,
+  last-interacted viewport targeting, and a lazy Spline Maker adapter.
+  See the scoped decisions in docs/ARCHITECTURE.md.
+- Review and approve remaining architecture decisions before adding new
+  action providers, settings services, or broader distribution capabilities.
 - Keep proposed behavior distinct from implemented and runtime-verified behavior.
 - Read docs/ARCHITECTURE.md, docs/BLENDER_API_RESEARCH.md, and docs/ROADMAP.md.
 
@@ -61,3 +64,6 @@
   official Blender documentation for API decisions and record uncertainty.
 - Do not commit user layouts, personal absolute paths, .blend files, generated
   previews, caches, or release archives without an explicit project need.
+  The user approved stable/BlenderToolbar-prototype-0.1.17.zip and the portable
+  presets/development-layout.json snapshot. Raw Blender preferences and startup
+  workspaces remain local and must not be committed.

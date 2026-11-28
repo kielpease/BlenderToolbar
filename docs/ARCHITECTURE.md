@@ -159,3 +159,73 @@ is 5.2.4 even though metadata declares the 5.2 API baseline.
 - Determine how to distribute and license the add-on before release packaging.
 
 Approval permits implementation; it does not establish runtime compatibility.
+
+
+## Scoped popup and Spline Maker implementation (0.1.16)
+
+The user requested per-button popups, Spline Maker drawing, conversion to mesh,
+and Materials / Render Settings on 2026-11-27, and explicitly chose the full
+Properties editor in separate floating windows. This authorizes those specific
+capabilities; the remaining architecture review items above remain open.
+
+- Operator commands retain the same-window, position-based viewport target.
+  A per-button `popup` flag opens a transient command launcher; dismissing it
+  does not run the command. Its Run button rechecks the original viewport and
+  operator poll, including mode and selection, before execution.
+- Materials and Render Settings duplicate the selected viewport into a new
+  Blender window and configure only that new area as Properties, on the
+  MATERIAL or RENDER tab. A 3D Viewport Window action is also available. These
+  windows are normal interactive Blender editors, owned and closed by Blender.
+  No existing area is temporarily converted or restored, and no timers or
+  persistent window references are installed by the add-on.
+- Draw Spline invokes `spline_maker.draw_spline` lazily. The adapter checks for
+  the registered operator, imports no extension, and never enables it. Missing
+  Spline Maker preserves the button and reports the unavailable capability.
+- Convert to Mesh uses `object.convert(target='MESH')` in Object Mode and the
+  target viewport. It respects Blender's operator undo and selection behavior.
+- Pure core validation defines layout version 2, adding the boolean `popup`.
+  Version 1 migrates in memory with Popup disabled, preserving IDs and order;
+  Save Toolbar atomically writes version 2. Unsupported versions and malformed
+  candidates are rejected before replacing the file. Downgrading to 0.1.15
+  requires restoring a version-1 backup; older builds reject version 2.
+- The GPU toolbar uses portable curve/mesh/material/camera vector strokes owned
+  by icons/. The command popup uses Blender's native curve icon, matching
+  Spline Maker's Add menu; no extension asset or preview ID is persisted.
+
+
+## Scoped grouping, selection commands, and targeting (0.1.17)
+
+On 2026-11-27 the user requested separators/grouping, undo/redo, transform tools,
+selected-object rename and translation locks, selected conversion, and repair
+of Draw Spline targeting the camera view instead of the last selected viewport.
+That request authorizes this scope; unrelated architecture gates remain open.
+
+Layout version 3 adds `kind` (BUTTON or SEPARATOR) to the existing ordered
+entries. A separator's optional label is a group heading. Its saved action/icon
+fields remain inert, and it is never dispatched as an action. Versions 1/2
+migrate to BUTTON entries without changing identities, labels, actions or order.
+The maximum is 32 entries; collapsible/nested groups remain deferred.
+
+Viewport targeting is owned by actions/viewports.py. A short pass-through
+operator observes mouse clicks, wheel and trackpad/3D-mouse navigation through
+a supported View3D keymap. It records only integer window/screen/area pointers.
+Resolution matches the current screen and window on every click, using the sole
+viewport only when unambiguous. Multiple views without a valid remembered target
+require explicit viewport interaction. File-load and unregister cleanup clear
+the cache. There is no modal observer, startup operator invocation, draw-based
+state mutation, or startup timer. Keyboard-only navigation without a click or
+tracked navigation event does not change the remembered target.
+
+registration.py now owns explicit class ordering, header and draw hooks,
+keymaps, the persistent load cleanup handler, and reverse/partial cleanup.
+Selection operators own rename and lock changes. Only selected editable objects
+are changed, in Object Mode. Convert delegates selected-object conversion to
+Blender and rejects an active object outside the editable selection.
+
+Undo/Redo invoke Blender history without adding a new step. Synchronous data
+edits called from the toolbar's mouse handler need explicit undo recording in
+Blender 5.2.5; the nested operator's UNDO flag alone did not create a step in
+interactive verification. The action descriptor opts known synchronous edits
+into a single named undo_push after success. Modal actions, dialogs, tool
+activation, editor windows, and history commands retain their native behavior.
+No blanket undo wrapper is applied to every action.
